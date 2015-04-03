@@ -23,3 +23,17 @@ RESOURCES += images.qrc
 CONFIG += qxt
 
 QXT += core gui
+
+unix {
+
+isEmpty(PREFIX) {
+PREFIX = /usr/local
+}
+
+BINDIR = $$PREFIX/bin
+
+target.path = $$BINDIR
+
+INSTALLS += target
+
+}
