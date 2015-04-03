@@ -30,7 +30,7 @@ SystemTray::SystemTray(QWidget* parent) : QWidget(parent) {
     functionTrigger = new QAction("&Enable", this);
     trayQuit = new QAction("&Quit", this);
     functionTrigger->setCheckable(true);
-    connect(functionTrigger, SIGNAL(triggered()), this, SLOT(offTrigger()));
+    connect(functionTrigger, SIGNAL(triggered()), this, SLOT(offTriggerHelper()));
     connect(functionTrigger, SIGNAL(changed()), this, SLOT(offIcon()));
     connect(trayQuit, SIGNAL(triggered()), this, SLOT(offQuit()));
     trayMenu = new QMenu();
@@ -43,23 +43,28 @@ SystemTray::SystemTray(QWidget* parent) : QWidget(parent) {
 }
 
 void SystemTray::offEnable() {
-    functionTrigger->setChecked(false);
     functionTrigger->setEnabled(false);
     QtConcurrent::run(Function);
 }
 
 void SystemTray::offDisable() {
-    functionTrigger->setChecked(true);
     functionTrigger->setEnabled(false);
     control.auto_repeat_mode = true;
 }
 
 void SystemTray::offTrigger() {
-    if (functionTrigger->isChecked()) {
-        offEnable();
-    } else {
-        offDisable();
+    if (functionTrigger->isEnabled()) {
+        if (functionTrigger->isChecked()) {
+            offDisable();
+        } else {
+            offEnable();
+        }
     }
+}
+
+void SystemTray::offTriggerHelper() {
+    functionTrigger->setChecked(!functionTrigger->isChecked());
+    offTrigger();
 }
 
 void SystemTray::offIcon() {

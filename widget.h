@@ -17,6 +17,7 @@ public:
     void offDisable();
 public slots:
     void offTrigger();
+    void offTriggerHelper();
     void offIcon();
     void offQuit();
 };

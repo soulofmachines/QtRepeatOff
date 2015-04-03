@@ -12,11 +12,14 @@ TARGET = QtRepeatOff
 TEMPLATE = app
 
 SOURCES += main.cpp\
-        widget.cpp
+widget.cpp
 
 HEADERS  += widget.h
 
 LIBS += -lX11
 
-RESOURCES += \
-    images.qrc
+RESOURCES += images.qrc
+
+CONFIG += qxt
+
+QXT += core gui
