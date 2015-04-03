@@ -17,3 +17,6 @@ SOURCES += main.cpp\
 HEADERS  += widget.h
 
 LIBS += -lX11
+
+RESOURCES += \
+    images.qrc

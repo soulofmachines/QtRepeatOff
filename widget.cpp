@@ -3,33 +3,75 @@
 #include <X11/XKBlib.h>
 #include <unistd.h>
 
+QAction* functionTrigger;
+
 Display *dpy;
 XKeyboardControl control;
 XKeyboardState state;
-
-Widget::Widget(QWidget *parent) : QWidget(parent) {
-    QGridLayout* layout = new QGridLayout;
-    QPushButton* close = new QPushButton("Close");
-    connect(close, SIGNAL(clicked()), this, SLOT(close()));
-    layout->addWidget(close, 0, 0, 1, 1);
-    setLayout(layout);
-    QtConcurrent::run(Function);
-}
-
-Widget::~Widget() {
-    control.auto_repeat_mode = true;
-}
 
 void Function() {
     control.auto_repeat_mode = false;
     dpy = XOpenDisplay(NULL);
     do {
-        sleep(5);
+        sleep(3);
         XGetKeyboardControl(dpy, &state);
         if ((state.global_auto_repeat == AutoRepeatModeOn) || (control.auto_repeat_mode == true)) {
             XChangeKeyboardControl(dpy, KBAutoRepeatMode, &control);
             XFlush(dpy);
         }
+        functionTrigger->setChecked(true);
+        functionTrigger->setEnabled(true);
     } while (control.auto_repeat_mode == false);
     XCloseDisplay(dpy);
+    functionTrigger->setChecked(false);
+}
+
+SystemTray::SystemTray(QWidget* parent) : QWidget(parent) {
+    functionTrigger = new QAction("&Enable", this);
+    trayQuit = new QAction("&Quit", this);
+    functionTrigger->setCheckable(true);
+    connect(functionTrigger, SIGNAL(triggered()), this, SLOT(offTrigger()));
+    connect(functionTrigger, SIGNAL(changed()), this, SLOT(offIcon()));
+    connect(trayQuit, SIGNAL(triggered()), this, SLOT(offQuit()));
+    trayMenu = new QMenu();
+    trayMenu->addAction(functionTrigger);
+    trayMenu->addAction(trayQuit);
+    trayIcon = new QSystemTrayIcon();
+    trayIcon->setContextMenu(trayMenu);
+    offIcon();
+    trayIcon->show();
+}
+
+void SystemTray::offEnable() {
+    functionTrigger->setChecked(false);
+    functionTrigger->setEnabled(false);
+    QtConcurrent::run(Function);
+}
+
+void SystemTray::offDisable() {
+    functionTrigger->setChecked(true);
+    functionTrigger->setEnabled(false);
+    control.auto_repeat_mode = true;
+}
+
+void SystemTray::offTrigger() {
+    if (functionTrigger->isChecked()) {
+        offEnable();
+    } else {
+        offDisable();
+    }
+}
+
+void SystemTray::offIcon() {
+    if (functionTrigger->isChecked()) {
+        trayIcon->setIcon(QPixmap(":/enabled.png"));
+    } else {
+        trayIcon->setIcon(QPixmap(":/disabled.png"));
+    }
+}
+
+void SystemTray::offQuit() {
+    offDisable();
+    sleep(5);
+    this->close();
 }
